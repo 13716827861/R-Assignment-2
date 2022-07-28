@@ -1,0 +1,15 @@
+ds_salaries<-read.csv("/Users/lvzhuoyang/Desktop/ds_salaries.csv", header=TRUE)
+View(ds_salaries)
+?ds_salaries
+ds_salaries$salary_in_usd
+dataBytype<-data.frame(ds_salaries$salary_in_usd, ds_salaries$remote_ratio)
+table(dataBytype$salary_in_usd)
+ggplot(dataBytype, aes(x=ds_salaries.salary_in_usd, y=ds_salaries.remote_ratio)) + geom_point()
+
+View(dataBytype)        
+ds_salaries<-read.csv("/Users/lvzhuoyang/Desktop/ds_salaries.csv", header=TRUE)
+x<-(ds_salaries$work_year)
+y<-(ds_salaries$salary)
+ggplot(data=ds_salaries, aes(x=work_year, y=salary))+geom_point(color="blue")
+
+       
