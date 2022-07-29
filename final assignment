@@ -1,0 +1,61 @@
+library(shiny)
+library(shinythemes)
+library(stats)
+library(dplyr)
+library(randomForest)
+cancer_data<-read.csv("/Users/lvzhuoyang/Desktop/cancer_data.csv", header=TRUE)
+View(cancer_data)
+cancer_Data<- data.frame(Deaths_cum_risk=cancer_data$Deaths_cum_risk, Deaths.Number=cancer_data$Deaths.Number, death_rank=cancer_data$death_rank, new_case_percent=cancer_data$new_case_percent, cancer_type=cancer_data$cancer_type)
+
+ui<- fluidPage(theme = "cerulean",
+  headerPanel("Match the cancer species"), 
+  sidebarPanel(
+    h2("Input cancer data"),
+    sliderInput("Deathrisk", "Deaths_cum_risk", min = min(cancer_data$Deaths_cum_risk), max = max(cancer_data$Deaths_cum_risk), value = min(cancer_data$Deaths_cum_risk)),
+    sliderInput("Deathnumber", "Deaths.Number", min = min(cancer_data$Deaths.Number), max = max(cancer_data$Deaths.Number), value = min(cancer_data$Deaths.Number)),
+    sliderInput("Deathrank", "death_rank", min = min(cancer_data$death_rank), max = max(cancer_data$death_rank), value = min(cancer_data$death_rank)),
+    sliderInput("newcasepercent", "new_case_percent", min = min(cancer_data$new_case_percent), max = max(cancer_data$new_case_percent), value = min(cancer_data$new_case_percent)),
+    actionButton("submitBtn", "Make Prediction", class="btn btn-primary")
+),
+ mainPanel(
+   h1("Cancer prediction"),
+   verbatimTextOutput('contents'),
+   plotOutput(outputId = "cancernames1"),
+   plotOutput(outputId = "cancernames2"),
+   plotOutput(outputId = "cancernames3"),
+   plotOutput(outputId = "cancernames4")
+  )
+)
+
+
+server<- function(input, output, session){
+output$cancernames1<-renderPlot({
+  ggplot(data = cancer_Data, aes(x=death_rank, y=cancer_type))+geom_point(color="blue")
+})
+output$cancernames2<-renderPlot({
+  ggplot(data=cancer_Data, aes(x=new_case_percent, y=cancer_type))+geom_point(color="red")
+})
+output$cancernames3<-renderPlot({
+  ggplot(data=cancer_Data, aes(x=Deaths.Number, y=cancer_type))+geom_point(color="green")
+})
+output$cancernames4<-renderPlot({
+  ggplot(data=cancer_Data, aes(x=Deaths_cum_risk, y=cancer_type))+geom_point(color="darkred")
+})
+  index = sample(2, nrow(cancer_Data), replace=T, prob=(c(0.7, 0.3)))
+  Training = cancer_Data[index==1,]
+  Testing = cancer_Data[index==2,]
+  
+  RFM = randomForest(factor(cancer_type)~., data=Training)
+  output$contents <- renderPrint({
+    if(input$submitBtn>0){
+      
+       inputData <- data.frame(Deaths_cum_risk = input$Deathrisk,
+                               Deaths.Number = input$Deathnumber,
+                               death_rank = input$Deathrank,
+                               new_case_percent = input$newcasepercent)
+       
+       predict(RFM, inputData)
+    }
+  })
+}
+shinyApp(ui=ui, server=server)
