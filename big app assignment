@@ -1,0 +1,33 @@
+AllSatellites<-read.csv("/Users/lvzhuoyang/Desktop/AllSatellites.csv", header=TRUE)
+View(AllSatellites)
+install.packages(c("shiny", "shinythemes"))
+install.packages("dplyr")
+library(shiny)
+library(shinythemes)
+library(stats)
+library(dplyr)
+library(randomForest)
+ui<-fluidPage(
+  theme = shinytheme("cerulean"),
+  navbarPage(
+    "AllSatellites charts",
+    tabPanel("Name",
+        sidebarPanel(
+          tags$h3("Input:"),
+          textInput("txt1", "orbit.height..km", " ")
+        ),
+        mainPanel(
+          h1("Satellites Chart"),
+          plotOutput(outputId = "SatellitesNames")
+        )
+    ),
+  )
+)
+server<-function(input, output){
+  AllSatellites %>% filter(AllSatellites$Orbit.Height..km.=="all")-> ALL_Satellites
+  output$SatellitesNames <- renderPlot({
+    ggplot(data = ALL_Satellites, aes(x=Launched.in, y=Orbit.Height..km.))+geom_point(color="blue")
+})
+}  
+
+shinyApp(ui = ui, server = server)
